@@ -1,9 +1,12 @@
+import sys
 from scraper import MudScraper
 
 def main(args):
     M = MudScraper()
     M.add_candidate('Bernie Sanders', ['#feelthebern'])
-    M.get_tweets('Bernie Sanders')
+    texts = M.get_tweets('Bernie Sanders')
+    for t in texts:
+        print t
 
 
 if __name__ == '__main__':
