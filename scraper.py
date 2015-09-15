@@ -7,14 +7,6 @@ import datetime
 now = datetime.datetime.now()
 filename = "twitter_data_%i.%i.%i.txt" % (now.month, now.day, now.year)
 
-
-APP_KEY = 'doadCFjT8xKW1IKzzLC6kCr5K'
-APP_SECRET = 'qRNQvBxBXmL0b0bBTcnEONPQjDOwVjr7ubIwDd2UvDl5rAADYF'
-OAUTH_TOKEN = '155280821-tL4e8NIXIevgY4iZUW1okbudTaCCHRbGfvEuDan7'
-OAUTH_TOKEN_SECRET='zINzgGgArevnCSlhAAve086QAXnPI6mR6YFnxDU7x2QlW'
-
-twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
-
 class MudScraper(object):
     API_URL = 'https://api.twitter.com/1.1/search/tweets.json'
 
@@ -26,6 +18,7 @@ class MudScraper(object):
     def __init__(self):
         self.twitter = Twython(self.APP_KEY, self.APP_SECRET, self.OAUTH_TOKEN, self.OAUTH_TOKEN_SECRET)
         self.candidates = {}
+        self.fields = set()
     
     def add_candidate(self, name, search_terms=[]):
         self.candidates[name] = Candidate(name, set(search_terms))
@@ -41,15 +34,22 @@ class MudScraper(object):
 
     def get_tweets(self, name):
         search_terms = list(self.candidates[name].search_terms)
-        statuses = []
+        status_texts = []
         for term in search_terms:
             query_results = self.twitter.search(q=term)
-            texts = self.extract_text(query_results['statuses'])
-            statuses.extend(texts)
-        statuses = set(statuses)
+            # extracted_data = self.extract_data(query_results['statuses'])
+            extracted_texts = self.extract_text(query_results['statuses'])
+            status_texts.extend(extracted_texts)
+        return status_texts
 
     def extract_text(self, statuses):
         return [remove_urls(s['text']) for s in statuses]
+
+    def extract_data(self, statuses):
+        def helper(status):
+            data = {field: status[field] for field in self.fields if field in status.keys()}
+        return [helper(status) for status in statuses]
+
 
 
 class Candidate(object):
